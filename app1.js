@@ -1,19 +1,19 @@
-var request = require('request-promise');
-var cheerio =  require('cheerio');
+// var request = require('request-promise');
 
-//Аргументы для запроса
-const options = {
-    uri: "https://www.google.com",
-    transform: (body) => cheerio.load(body),
-}
 
-//Самый примитивный парсер
-const scrape = async (options) => {
-    return await request(options);
-}
+// //Аргументы для запроса
+// const options = {
+//     uri: "https://www.google.com",
+//     transform: (body) => cheerio.load(body),
+// }
 
-scrape({...options}).then((result)=>{console.log(result.xml())});
+// //Самый примитивный парсер
+// const scrape = async (options) => {
+//     return await request(options);
+// }
 
-var check =(params) => scrape({...options})
+// scrape({...options}).then((result)=>{console.log(result.xml())});
 
-module.exports = check ;
+// var check =(params) => scrape({...options})
+
+// module.exports = check ;
