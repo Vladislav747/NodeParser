@@ -1,9 +1,14 @@
 const puppeteer = require('puppeteer');
 var cheerio =  require('cheerio');
 
+console.log('Script started');
+
 const options = {
-    uri: `http://books.toscrape.com/`,
-    transform: (body) => cheerio.load(body)
+    uri: 'https://max-try.ru/catalog/elektronika/',
+    transform: (body) => cheerio.load(body),
+    username: 'Vladislav747',
+    password: 'Olaola74Las',
+    maxPage: 100,
 }
 
 const login = async (page, options) => {
@@ -34,56 +39,56 @@ const getSearchUrl = (options) => {
     return `https://github.com/search?q=${searchText}`;
 }
 
-//Получить количество страниц
-const getNumPages = (page, options) => {
-    const NUM_USER_SELECTOR = '#js-pjax-container';
+//Получить количество товаров
+const getNumGoods = async (page, options) => {
+    const PARENT_TAG = '.catalog_block';
+    const CHILDREN_TAG = '.item_block';
+
 
     let content = await page.content();
     let $ = options.transform(content);
-
-    let inner = ($(NUM_USER_SELECTOR)
-                .html() || '')
-                .replace(',','')
-                .replace('users','')
-                .trim();
-    const numUsers = parseInt(inner);
-
-    let num = Math.ceil(numUsers/10);
+    const num = parseInt($(PARENT_TAG).children(CHILDREN_TAG).length);
+    
+    console.log($(PARENT_TAG).children(CHILDREN_TAG).length,'num');
+    
     return num > options.maxPage ? options.maxPage || 100 : num;
 }
 
 //
-const receiveUserMeta = async (index, page, options) => {
-    const LENGTH_SELECTOR_CLASS = '.user-list-item';
+const receiveUserData = async (page, options) => {
+    const PARENT_TAG = '.catalog_block';
+    const CHILDREN_TAG = '.item_block';
 
-    //поле username
-    const LIST_USERNAME_SELECTOR = '.user-list-info.ml-2 > a';
-    //поле email
-    const LIST_EMAIL_SELECTOR = '.octicon.octicon-mail + a.muted-link';
-
-    let pageUrl = getSearchUrl(options) + '&p=' + index;
-
-    await page.goto(pageUrl, {waitUntil: ['domcontentloaded']});
+    await page.goto(options.uri, {waitUntil: ['domcontentloaded']});
 
     let content = await page.content();
     let $ = options.transform(content);
 
-    return $(LENGTH_SELECTOR_CLASS).map(function(){
-        return {
-            username: $(this).find(LIST_USERNAME_SELECTOR).eq(0).text(),
-            email: $(this).find(LIST_EMAIL_SELECTOR).eq(0).text()
-        }
-    }).get().filter(e => e.email);
+    var data = [];
+
+    $(PARENT_TAG + ' '+ CHILDREN_TAG).each(function(){
+        data.push($(this).text().replace(' ','').trim());
+    })
+
+    console.log(data, 'data');
+
+    return data;
 
 }
 
-const scrape = async () => {
-    const options = {
-        uri: `http://books.toscrape.com/`,
-        transform: (body) => cheerio.load(body),
-        username: 'Vladislav747',
-        password: 'Olaola74Las'
+
+const writeFileInterceptor = ({blacklist}) => (e) => {
+    if(blacklist.find(item => item.test(e.url))){
+        e.abort();
+    }else{
+        e.continue();
     }
+}
+
+
+
+const scrape = async (options) => {
+    
     const browser = await puppeteer.launch(options);
     
     const page = await browser.newPage();
@@ -93,18 +98,17 @@ const scrape = async () => {
     //     width: 1240,
     //     height: 680
     // });
-
+    
     await page.goto(options.uri);
-    await login(page, options);
-    console.log(login(page, options));
-    let content = await page.content();
-    //const numPages = await getNumPages(page, options);
-    //console.log(numPages, "numPages");
-    let $ = options.transform(content);
+    //await login(page, options);
+    const numPages = await getNumGoods(page, options);
+    const data = await receiveUserData(page, options);
+
     await browser.close();
-    return $;
+    
+    return {numPages, data}
 }
 
-console.log(scrape());
+//console.log(scrape(options));
 
-module.exports = (options) => scrape(options);
+module.exports = scrape(options);

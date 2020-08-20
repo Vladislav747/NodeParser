@@ -1,12 +1,12 @@
 var scrape = require('./app');
-const { config } = require('npm');
+const config  = require('./config');
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999;
 
 describe ('puppeeteer login github', () => {
     test('should return Array', async () => {
         let users = await scrape ({
-            username: config.github.username,
-            password: config.github.password,
+            username: config.username,
+            password: config.password,
             search: 'bitcoin',
             maxPage: 20,
         });

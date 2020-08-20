@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest ./app.test.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,5 +14,11 @@
     "puppeteer": "^5.2.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.5"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "jasmine": "^3.6.1",
+    "mocha": "^8.1.1",
+    "mockery": "^2.1.0"
   }
 }
